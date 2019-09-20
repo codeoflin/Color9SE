@@ -2,6 +2,7 @@ package com.linz.color9se;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,6 +15,7 @@ import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -37,7 +39,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Point screensize = new Point();
+        //开局一个背景
         super.onCreate(savedInstanceState);
+
+        //设置背景属性
+        //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        //lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        getWindow().setAttributes(lp);
+
         //去除标题栏
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
@@ -45,14 +55,21 @@ public class MainActivity extends AppCompatActivity {
 
         //去除状态栏
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_main);
+
         this.iv = (ImageView) this.findViewById(R.id.iv);
         Log.i(TAGi, "start!");
         Display display = getWindowManager().getDefaultDisplay();
         DisplayMetrics dm2 = getResources().getDisplayMetrics();
         display.getSize(screensize);
-        ImgW = dm2.widthPixels;
-        ImgH = dm2.heightPixels;
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);   //应用运行时，保持屏幕高亮，不锁屏
+        //ImgW = 1119;//必须把宽度设为这个值才能全屏//
+        ImgW = metrics.widthPixels;
+        ImgH = metrics.heightPixels;
 
         //Log.i(TAGi, Integer.toString(h));
 
@@ -71,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         // 先将灰色背景画上
         canvas.drawBitmap(baseBitmap, new Matrix(), greenpen);
 
-
         Timer mTimer = new Timer();
         TimerTask mTimerTask = new TimerTask() {//创建一个线程来执行run方法中的代码
             @Override
@@ -84,15 +100,15 @@ public class MainActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
-                handler.postDelayed(runnable, 3);
-                Second += 13;
-                int radius = (ImgW < ImgH ? ImgW : ImgH) / 10;
+                handler.postDelayed(runnable, 1);
+                Second += 10;
+                int radius = (ImgW < ImgH ? ImgW : ImgH) / 64;
                 int mods = Second % (((ImgH + ImgW) * 2) - (radius * 8));
                 Paint pen;
-                pen = (Second % 500 > 250) ? redpen : greenpen;
+                pen = (Second % 500 > 250) ? greenpen : greenpen;
                 //Clear Screen
                 canvas.drawColor(Color.BLACK);
-                canvas.drawText(Integer.toString(Second), 20, 100, greenpen);
+                //canvas.drawText(Integer.toString(Second), 20, 100, greenpen);
                 //.drawText("一个测试", ImgW / 8, ImgH / 8, pen);
 
                 //1
@@ -113,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
                 //3
                 if (mods < ImgW - (radius * 2)) {
-                    canvas.drawCircle(ImgW - mods - radius, ImgH-radius, radius, pen);
+                    canvas.drawCircle(ImgW - mods - radius, ImgH - radius, radius, pen);
                     iv.setImageBitmap(baseBitmap);
                     return;
                 }
